@@ -60,6 +60,7 @@ RUN ( \
       echo "#"; \
       echo "cd /app/"; \
       echo "chown -R app:app /app/"; \
+      echo "/sbin/setuser app bundle install"; \
       echo "/sbin/setuser app bundle exec script/delayed_job start"; \
       echo "/sbin/setuser app bundle exec rails server -p 3002"; \
       echo "/sbin/setuser app bundle exec script/delayed_job stop"; \

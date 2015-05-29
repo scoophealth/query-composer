@@ -74,7 +74,6 @@ WORKDIR /app/
 COPY . .
 RUN bundle install --path vendor/bundle
 RUN sed -i -e "s/localhost:27017/hubdb:27017/" config/mongoid.yml
-RUN bundle install
 RUN chown -R app:app /app/
 
 

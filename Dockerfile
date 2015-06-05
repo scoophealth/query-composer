@@ -28,7 +28,6 @@ RUN ( \
       echo "#!/bin/bash"; \
       echo "#"; \
       echo "set -e -o nounset"; \
-      echo "sleep 10"; \
       echo ""; \
       echo "# Store Hub's public key hash (based on fingerprint)"; \
       echo "#"; \
@@ -73,9 +72,9 @@ RUN chmod +x /etc/service/app/run
 #
 WORKDIR /app/
 COPY . .
-RUN bundle install --path vendor/bundle
-RUN sed -i -e "s/localhost:27017/hubdb:27017/" config/mongoid.yml
 RUN chown -R app:app /app/
+RUN /sbin/setuser app bundle install --path vendor/bundle
+RUN sed -i -e "s/localhost:27017/hubdb:27017/" config/mongoid.yml
 
 
 # Run Command

@@ -29,21 +29,6 @@ RUN ( \
       echo "#"; \
       echo "set -e -o nounset"; \
       echo ""; \
-      echo "# Store Hub's public key hash (based on fingerprint)"; \
-      echo "#"; \
-      echo "if [ ! -f /root/.ssh/known_hosts ]"; \
-      echo "then"; \
-      echo "  ssh -p 2774 autossh@10.0.2.2 -o StrictHostKeyChecking=no || true"; \
-      echo "fi"; \
-      echo ""; \
-      echo ""; \
-      echo "# Copy Hub's public key to host"; \
-      echo "#"; \
-      echo "if [ ! -f /etc/ssh/known_hosts ]"; \
-      echo "then"; \
-      echo "  cp /root/.ssh/known_hosts /etc/ssh/"; \
-      echo "fi"; \
-      echo ""; \
       echo ""; \
       echo "# Create Endpoint public keys file (authorized_keys)"; \
       echo "#"; \

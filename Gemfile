@@ -23,7 +23,7 @@ gem 'multipart-post'
 gem 'delayed_job'
 gem 'delayed_job_mongoid'
 
-gem 'hquery-patient-api', :git => 'https://github.com/physiciansdatacollaborative/patientapi.git', :branch => 'master', :tag => 'pdc-0.1.0'
+gem 'hquery-patient-api', :git => 'https://github.com/physiciansdatacollaborative/patientapi.git', :branch => 'master', :tag => 'pdc-0.2.0'
 
 gem 'coderay'
 

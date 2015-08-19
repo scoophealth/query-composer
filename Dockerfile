@@ -12,7 +12,10 @@ RUN echo 'Dpkg::Options{ "--force-confdef"; "--force-confold" }' \
       >> /etc/apt/apt.conf.d/local
 RUN apt-get update; \
     apt-get upgrade -y; \
-    apt-get install -y lynx
+    apt-get install -y \
+      lynx \
+      nmap \
+      rsync
 
 
 # Enable and configure SSH (for AutoSSH user/tunnel)

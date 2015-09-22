@@ -8,6 +8,8 @@ as an example of how to create a shell-script to do the check.
 2. Add route in query-gateway/config/routes.rb to new system check
 3. Add test to test/functional/sysinfo_controller_test.rb that verifies that
 a response is returned for new system check
+4. The query-gateway repo at each endpoint needs to be updated so that the
+system check is available for that endpoint.
 
 B. Changes in query-composer
    -------------------------
@@ -21,9 +23,13 @@ accordingly.
 C. Changes on hub
    --------------
 1. On the hub checkout the latest query-composer somewhere and in
-the monitoring directory run ./generate_nagios3_config.sh to create
+query-composer/monitoring run ./generate_nagios3_config.sh to create
 replacement /etc/nagios/nrpe_local.cfg and /usr/local/lib/nagios plugins.
-2. Check validity, move files into the target locations and execute
+2. Try running the new plugins in
+query-composer/monitoring/nagios-nrpe-server-config/plugins.  Make sure
+they respond correctly for each endpoint and that all endpoints have been
+updated to support the new system check.
+3. After checking correctness, move files into the target locations and execute
   sudo service nagios-nrpe-server reload
 
 D. Changes on Nagios host

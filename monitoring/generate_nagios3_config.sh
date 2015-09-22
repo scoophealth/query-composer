@@ -64,7 +64,7 @@ service_description() {
   elif [ "users" = $1 ]; then
     echo "	service_description	Current Users"
   else
-    echo "	service_description	$2"
+    echo "	service_description	$1"
   fi
 }
 

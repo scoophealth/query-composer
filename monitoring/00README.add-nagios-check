@@ -1,0 +1,38 @@
+A. Changes in query-gateway
+   ------------------------
+1. Modify query-gateway/app/controller/sysinfo_controller.rb to include
+a definition of the new system check.  If it can't leverage off an existing
+Nagios plugin like check_procs (see for instance the tomcat and delayed_job
+checks that use check_procs), use query-gateway/nagios-plugins/check_import.sh
+as an example of how to create a shell-script to do the check.
+2. Add route in query-gateway/config/routes.rb to new system check
+3. Add test to test/functional/sysinfo_controller_test.rb that verifies that
+a response is returned for new system check
+
+B. Changes in query-composer
+   -------------------------
+1.  Modify query-composer/monitoring/generate_nagios3_config.sh by adding the
+system check to ep_checks_oscar and/or ep_checks_osler.
+2.  If you want the service description displayed in Nagios to be different
+than the name of the check (say "total processes" versus "processes") then
+modify the service_description function in generate_nagios3_config.sh
+accordingly.
+
+C. Changes on hub
+   --------------
+1. On the hub checkout the latest query-composer somewhere and in
+the monitoring directory run ./generate_nagios3_config.sh to create
+replacement /etc/nagios/nrpe_local.cfg and /usr/local/lib/nagios plugins.
+2. Check validity, move files into the target locations and execute
+  sudo service nagios-nrpe-server reload
+
+D. Changes on Nagios host
+   ----------------------
+1. On the Nagios server checkout the latest query-composer somewhere
+and in the monitoring directory run ./generate_nagios3_config.sh
+to create replacement /etc/nagios3/commands.cfg and
+/etc/nagios3/conf.d/pdc*.cfg files.
+2. Check validity, move files into the target locations and execute
+  /usr/sbin/nagios3 -v /etc/nagios3/nagios.cfg
+3. If there are no errors or warnings execute
+  service nagios3 restart

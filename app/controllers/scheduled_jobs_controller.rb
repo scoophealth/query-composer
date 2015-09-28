@@ -1,5 +1,5 @@
 require 'cud_actions'
-require 'parallel'
+#require 'parallel'
 
 class ScheduledJobsController < ActionController::Base
   include CudActions
@@ -68,17 +68,17 @@ class ScheduledJobsController < ActionController::Base
     username = params[:username]
     current_user = User.find_by_username(username)
     if current_user
-      query_descriptions = params[:query_descriptions]
+      query_titles = params[:query_titles]
       # logger.info 'param query_descriptions:' + query_descriptions.inspect
       selected_queries = []
-      if query_descriptions
-        parse_array(query_descriptions).each do |query_desc|
-          match_query = current_user.queries.find_by_description(query_desc)
+      if query_titles
+        parse_array(query_titles).each do |query_title|
+          match_query = current_user.queries.find_by_title(query_title)
           if match_query
-            logger.info query_desc + ' matches: ' + match_query[:description].inspect
+            logger.info query_title + ' matches: ' + match_query[:description].inspect
             selected_queries.push(match_query)
           else
-            logger.info 'WARNING: ' + query_desc + ' has no match!'
+            logger.info 'WARNING: ' + query_title + ' has no match!'
           end
         end
       end
@@ -88,8 +88,8 @@ class ScheduledJobsController < ActionController::Base
     if selected_endpoints && !selected_endpoints.empty? &&
         selected_queries && !selected_queries.empty?
       notify = params[:notification]
-      #selected_queries.each do |eachQuery|
-      Parallel.each(selected_queries, :in_threads=>15) do |eachQuery|
+      selected_queries.each do |eachQuery|
+      #Parallel.each(selected_queries, :in_threads=>15) do |eachQuery|
         # execute the query, and pass in the endpoints and if the user should be notified by email when execution completes
         # logger.info 'title: ' + eachQuery[:title].inspect
         # logger.info 'desc:  ' + eachQuery[:description].inspect

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+PWD=$(pwd)
+
 NRPE_PORT=3010 
 NRPE_CONFIG=/etc/nagios/nrpe.cfg
 
@@ -19,3 +21,15 @@ mkdir -p /usr/local/lib/nagios
 # Make a nrpe_local.cfg file if it does not already exist
 
 touch /etc/nagios/nrpe_local.cfg 
+
+# Move into the working directory
+
+cd /app/util/nrpe/
+
+# Use the file endpoints.txt as a list of endpoint numbers to use.
+
+./deploy_monitoring_scripts.sh $(cat endpoints.txt)
+
+# Move back to original directory
+
+cd $PWD

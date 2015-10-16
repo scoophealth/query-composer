@@ -17,5 +17,7 @@ class BaseQuery
     where(description: desc).first
   end
 
-  
+  def self.find_by_title(desc)
+    where(title: desc).first
+  end
 end

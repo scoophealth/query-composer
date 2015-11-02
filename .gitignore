@@ -13,3 +13,4 @@ spec/generated
 monitoring/nagios-config/
 monitoring/nagios-nrpe-server-config/
 generate_nagios3_config.sh~
+Gemfile.lock

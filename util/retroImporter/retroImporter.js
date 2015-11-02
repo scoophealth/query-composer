@@ -2,65 +2,85 @@
 var MongoClient = require('mongodb').MongoClient;
 var util = require('util');
 
+var preconditions = true;
+
+if(process.env.QUERY_TITLE === null || process.env.QUERY_TITLE === undefined)
+{
+         console.log('ERROR: QUERY_TITLE environment variable not set.');
+}
+else
+{
+	console.log('QUERY_TITLE: ' + process.env.QUERY_TITLE);
+}
+
+
+if(process.env.RETRO_QUERY_TITLE === null || process.env.RETRO_QUERY_TITLE === undefined)
+{
+         console.log('ERROR: RETRO_QUERY_TITLE environment variable not set.');
+}
+else
+{
+	console.log('RETRO_QUERY_TITLE: ' + process.env.RETRO_QUERY_TITLE);
+}
 // Connect to the db
 MongoClient.connect('mongodb://localhost:27017/query_composer_development', function(err, db) {
   if(err) { return console.dir(err); }
 
   db.collection('queries', null,
-    function(err, queries)
+    function(err, queriesCollection)
     {
       if(err) { throw err; }
 
       //fetch the retro query excution
       //****************************************************************************
-      queries.find({title:'Retro-PDC-053'}).toArray(
-        function(err, retroPDC053Queries)
+      queriesCollection.find({title:process.env.RETRO_QUERY_TITLE}).toArray(
+        function(err, retroQueries)
         {
           if(err) { throw err; }
 
-          if(retroPDC053Queries.length != 1)
+          if(retroQueries.length != 1)
           {
-            throw new Error('Not one and only one query with title for Retro-PDC-053');
+            throw new Error('Not one and only one retro query: ' + process.env.RETRO_QUERY_TITLE);
           }
 
-          var retroPDC053 = retroPDC053Queries[0];
+          var retroQuery = retroQueries[0];
 
-          if(retroPDC053.executions.length != 1)
+          if(retroQuery.executions.length != 1)
           {
-            throw new Error('Not one and only one execution for Retro-PDC-053');
+            throw new Error('Not one and only one execution for retro query: ' + process.env.RETRO_QUERY_TITLE);
           }
 
-          retroPDC053.executions = retroPDC053.executions.sort(
+          retroQuery.executions = retroQuery.executions.sort(
             function(a,b)
             {
               return a.time > b.time ? 1 : b.time > a.time ? -1 : 0;
             }
           );
 
-          var retroPDC053Execution = retroPDC053.executions[0];
+          var retroQueryExecution = retroQuery.executions[0];
 
           //****************************************************************************
 
           //fetch query executions
           //****************************************************************************
-          var pdc053Queries = queries.find({title:'PDC-053'}).toArray(
-            function(err, pdc053Queries)
+          var queries = queriesCollection.find({title:process.env.QUERY_TITLE}).toArray(
+            function(err, queries)
             {
               if(err) { throw err; }
 
-              if(pdc053Queries.length != 1)
+              if(queries.length != 1)
               {
-                throw new Error('Not one and only one query with title for PDC-053');
+                throw new Error('Not one and only one query: ' + process.env.QUERY_TITLE);
               }
 
-              var pdc053 = pdc053Queries[0];
+              var query = queries[0];
 
-              var pdc053Executions = pdc053.executions;
+              var queryExecutions = query.executions;
               //****************************************************************************
 
               //fetch retro retroResults
               //****************************************************************************
-              var retroResults = retroPDC053Execution.aggregate_result;
+              var retroResults = retroQueryExecution.aggregate_result;
               //****************************************************************************
 
               //build simulated executions
@@ -98,7 +118,7 @@ MongoClient.connect('mongodb://localhost:27017/query_composer_development', func
                     throw new Error('key did not have value in ["numerator", "denominator"]');
                   }
 
-                  simulatedExecution = {'_id':retroPDC053Execution._id,
+                  simulatedExecution = {'_id':retroQueryExecution._id,
                                             'aggregate_result':aggregate_result,
                                             'notification':null,
                                             'time':date
@@ -114,10 +134,6 @@ MongoClient.connect('mongodb://localhost:27017/query_composer_development', func
                     throw new Error('simulatedExecution evaluted to false');
                   }
 			
-		  console.log('execution.value: ' + execution.value);
-	          console.log('aggresult: ' + util.inspect(simulatedExecution.aggregate_result));
-		  console.log('den_id: ' + simulatedExecution.aggregate_result['denominator_' + execution.pid]);
-
                   if(execution.value === 'numerator' &&
                     simulatedExecution.aggregate_result['denominator_' + execution.pid] !== undefined &&
                     simulatedExecution.aggregate_result['denominator_' + execution.pid] !== null
@@ -133,19 +149,13 @@ MongoClient.connect('mongodb://localhost:27017/query_composer_development', func
                   }
                   else
                   {
-                    throw new Error("no match for date: " + date);
+                    throw new Error("ERROR: no match for date: " + date);
                   }
 
                   simulatedExecution.aggregate_result.simulated = true;
                 }
               }
               //****************************************************************************
-
-              //console.log("****Retro Execution****");
-              //console.log(retroPDC053Execution);
-
-              //console.log("****pdc053Executions****");
-              //console.log(pdc053Executions);
 
               //add the simulated executions to the execution List
               //****************************************************************************
@@ -155,41 +165,34 @@ MongoClient.connect('mongodb://localhost:27017/query_composer_development', func
                 {
                   continue;
                 }
-
-                pdc053Executions.push( simulatedExecutions[se] );
+		
+                queryExecutions.push( simulatedExecutions[se] );
               }
               //****************************************************************************
 
               //update the query with the retro results
               //****************************************************************************
-
-              queries.updateOne({title:'PDC-053'}, {$set:{executions:pdc053Executions}}, {upsert:true},
+	      
+              queriesCollection.updateOne({title:process.env.QUERY_TITLE}, {$set:{executions:queryExecutions}}, {upsert:true},
                   function(err, result)
                   {
                     if(err)
                     {
                       throw new Error(err);
                     }
-
-                    queries.find({title:'PDC-053'}).toArray(
-                      function(err, queries)
-                      {
-                        if(err)
-                        {
-                          throw new Error(err);
-                        }
-
-                        if(queries.length != 1)
-                        {
-                          throw new Error('not one and only one query with title pdc-053');
-                        }
-
-                        var query = queries[0];
-
-                        //console.log("****revised pdc053Executions****");
-                        console.log(query.executions);
-                      }
-                    );
+		    
+		    db.close(
+			function(err, result)
+			{
+				if(err)
+				{
+					console.log('ERROR: closing db - ' + error);
+				}
+				else
+				{
+					console.log('SUCCESS');
+				}
+			});
                   });
 
               //****************************************************************************
@@ -198,6 +201,4 @@ MongoClient.connect('mongodb://localhost:27017/query_composer_development', func
         });
     }
   );
-
-  console.log('done!');
 });

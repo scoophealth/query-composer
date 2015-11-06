@@ -93,19 +93,19 @@ MongoClient.connect('mongodb://localhost:27017/query_composer_development', func
                 {
                   continue;
                 }
-
+		
                 var execution = JSON.parse(key);
 
                 var date = execution.date/1000;//leave in milliseconds
                 var simulatedExecution;
 
-                if(!execution.gender || !execution.age || !execution.pid || !execution.date)
+                if(!execution.gender || !execution.ageRange || !execution.pid || !execution.date)
 		{
 			throw new Error('Error: Missing field');
 		}
 		
 		var ar_key = execution.gender + '_' +
-                             execution.age + '_' +
+                             execution.ageRange + '_' +
                              execution.pid;
 
 		if(!simulatedExecutions[date])

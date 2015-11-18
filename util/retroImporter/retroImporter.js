@@ -23,7 +23,7 @@ else
 	console.log('RETRO_QUERY_TITLE: ' + process.env.RETRO_QUERY_TITLE);
 }
 // Connect to the db
-MongoClient.connect('mongodb://localhost:27017/query_composer_development', function(err, db) {
+MongoClient.connect('mongodb://hubdb:27017/query_composer_development', function(err, db) {
   if(err) { return console.dir(err); }
 
   db.collection('queries', null,
@@ -129,28 +129,76 @@ MongoClient.connect('mongodb://localhost:27017/query_composer_development', func
                 else
                 {
                   simulatedExecution = simulatedExecutions[date];
+	          console.log("simulatedExecution:")
+		  console.log(simulatedExecution);
+	          console.log("execution:")
+	          console.log(execution);
                   if(!simulatedExecution)
                   {
                     throw new Error('simulatedExecution evaluted to false');
                   }
-			
-                  if(execution.value === 'numerator' &&
-                    simulatedExecution.aggregate_result['denominator_' + execution.pid] !== undefined &&
-                    simulatedExecution.aggregate_result['denominator_' + execution.pid] !== null
-                    )
+	          
+		  var FIELD = 0;
+		  var PID = 1;
+
+		  function getPIDMatch(simulatedExecution, execution) 
+		  {
+			var keys = Object.keys(simulatedExecution.aggregate_result);
+
+
+			for( var key in keys)
+			{
+				if(!keys.hasOwnProperty(key))
+				{	
+					continue;
+				}
+
+
+				var attributes = keys[key].split('_');
+
+				var pid = attributes[PID];
+				//var field_test = attributes[FIELD];
+
+				if(execution.pid === pid)
+				{
+		
+					return attributes;
+				}
+
+				console.log("execution.pid: "+ execution.pid);
+				console.log("pid: "+ pid);
+			}
+			return null;
+		    
+		  }
+		  	
+		  var pidMatch = getPIDMatch(simulatedExecution, execution);
+
+		  if(pidMatch !== null)
                   {
-                    simulatedExecution.aggregate_result['numerator_' + execution.pid] = retroResults[key];
-                  }
-                  else if(execution.value === 'denominator' &&
-                    simulatedExecution.aggregate_result['numerator_' + execution.pid] !== undefined &&
-                    simulatedExecution.aggregate_result['numerator_' + execution.pid] !== null )
-                  {
-                    simulatedExecution.aggregate_result['denominator_' + execution.pid] = retroResults[key];
-                  }
-                  else
-                  {
-                    throw new Error("ERROR: no match for date: " + date);
-                  }
+
+		    console.log("pidMatch: "+ pidMatch);		    
+		    console.log("execution.value: "+ execution.value);		    
+
+		    if(execution.value==='denominator')
+		    {
+                    	simulatedExecution.aggregate_result['denominator_' + execution.pid] = retroResults[key];
+		    }
+		    else if(execution.value === 'numerator')
+		    {
+                    	simulatedExecution.aggregate_result['numerator_' + execution.pid] = retroResults[key];
+		    }
+                    else
+                    {
+		    	console.log(simulatedExecutions[date]);
+                    	throw new Error("ERROR: no match for date: " + date);
+                    }
+		  }
+		  else
+		  {
+			simulatedExecution.aggregate_result[execution.value + '_' + execution.pid] = retroResults[key];
+		  }
+		
 
                   simulatedExecution.aggregate_result.simulated = true;
                 }

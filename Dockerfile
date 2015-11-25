@@ -42,6 +42,7 @@ RUN ( \
       echo "fi"; \
       echo "chown -R autossh:autossh /home/autossh/.ssh/"; \
       echo ""; \
+      echo "/app/util/install-nrpe.sh"; \
       echo ""; \
       echo "# Start service"; \
       echo "#"; \

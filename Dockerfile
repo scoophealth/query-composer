@@ -61,6 +61,15 @@ RUN git clone https://github.com/pdcbc/composer.git . -b ${RELEASE}; \
     sed -i -e "s/localhost:27017/hubdb:27017/" config/mongoid.yml
 
 
+# Batch query scheduling in cron
+#
+RUN ( \
+      echo "# Run batch queries"; \
+      echo "0 4 * * * /app/util/scheduled_job_post.py /app/util/job_params.json"; \
+    ) \
+      | crontab -
+
+
 # Create startup script and make it executable
 #
 RUN mkdir -p /etc/service/app/; \

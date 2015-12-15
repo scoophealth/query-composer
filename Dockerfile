@@ -26,7 +26,7 @@
 # - authorized_keys: -v </path/>:/home/autossh/.ssh/:ro
 # - known_hosts:     -v </path/>:/root/.ssh/:rw
 # - SSH keys:        -v </path/>:/etc/ssh/:rw
-# - job params:      -v </path/>:/app/util/job_params:rw
+# - job params:      -v </path/>:/app/util/job_params/:rw
 #
 # Releases
 # - https://github.com/PDCbc/composer/releases
@@ -94,10 +94,7 @@ RUN mkdir -p /etc/service/app/; \
       echo "  cp /app/util/job_params.json /app/util/job_params/"; \
       echo "fi"; \
       echo ""; \
-<<<<<<< HEAD
       echo ""; \
-=======
->>>>>>> master
       echo "# Start service"; \
       echo "#"; \
       echo "cd /app/"; \

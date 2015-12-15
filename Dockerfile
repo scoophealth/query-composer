@@ -94,7 +94,10 @@ RUN mkdir -p /etc/service/app/; \
       echo "  cp /app/util/job_params.json /app/util/job_params/"; \
       echo "fi"; \
       echo ""; \
+<<<<<<< HEAD
       echo ""; \
+=======
+>>>>>>> master
       echo "# Start service"; \
       echo "#"; \
       echo "cd /app/"; \

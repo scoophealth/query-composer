@@ -12,7 +12,7 @@
 #   -v /pdc/data/config/ssh/authorized_keys/:/home/autossh/.ssh/:ro \
 #   -v /pdc/data/config/ssh/known_hosts/:/root/.ssh/:rw \
 #   -v /pdc/data/config/ssh/ssh_keys_hub/:/etc/ssh/:rw \
-#   -v /pdc/data/config/scheduled_jobs/:/app/util/scheduled_job_params:rw  \
+#   -v /pdc/data/config/scheduled_jobs/:/app/util/job_params:rw  \
 #   pdcbc/dclapi
 #
 # Linked containers
@@ -26,7 +26,7 @@
 # - authorized_keys: -v </path/>:/home/autossh/.ssh/:ro
 # - known_hosts:     -v </path/>:/root/.ssh/:rw
 # - SSH keys:        -v </path/>:/etc/ssh/:rw
-# - job params:      -v </path/>:/app/util/scheduled_job_params:rw
+# - job params:      -v </path/>:/app/util/job_params:rw
 #
 # Releases
 # - https://github.com/PDCbc/composer/releases
@@ -65,7 +65,7 @@ RUN git clone https://github.com/pdcbc/composer.git . -b ${RELEASE}; \
 #
 RUN ( \
       echo "# Run batch queries"; \
-      echo "0 4 * * * /app/util/scheduled_job_post.py /app/util/job_params.json"; \
+      echo "0 23 * * * /app/util/scheduled_job_post.py /app/util/job_params/job_params.json"; \
     ) \
       | crontab -
 
@@ -86,6 +86,15 @@ RUN mkdir -p /etc/service/app/; \
       echo "chown -R autossh:autossh /home/autossh/.ssh/"; \
       echo ""; \
       echo ""; \
+      echo "# Create job_params.json, if necessary"; \
+      echo "#"; \
+      echo "if [ ! -f /app/util/job_params/job_params.json ]"; \
+      echo "then"; \
+      echo "  mkdir -p /app/util/job_params/"; \
+      echo "  cp /app/util/job_params.json /app/util/job_params/"; \
+      echo "fi"; \
+      echo ""; \
+      echo ""; \
       echo "# Start service"; \
       echo "#"; \
       echo "cd /app/"; \
@@ -97,6 +106,12 @@ RUN mkdir -p /etc/service/app/; \
     )  \
       >> /etc/service/app/run; \
     chmod +x /etc/service/app/run
+
+
+# Volumes
+#
+VOLUME /app/util/job_params/
+VOLUME /home/autossh/.ssh/
 
 
 # Run Command

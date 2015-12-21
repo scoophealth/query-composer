@@ -34,16 +34,6 @@
 #
 FROM phusion/passenger-ruby19
 MAINTAINER derek.roberts@gmail.com
-ENV RELEASE 0.1.4
-
-
-# Packages
-#
-RUN apt-get update; \
-    apt-get install -y \
-      git; \
-    apt-get clean; \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 
 # Enable and configure SSH (for AutoSSH user/tunnel)
@@ -55,14 +45,16 @@ RUN rm -f /etc/service/sshd/down; \
 # Prepare /app/ folder
 #
 WORKDIR /app/
-RUN git clone https://github.com/pdcbc/composer.git . -b ${RELEASE}; \
-    chown -R app:app /app/; \
-    /sbin/setuser app bundle install --path vendor/bundle; \
-    sed -i -e "s/localhost:27017/hubdb:27017/" config/mongoid.yml
+COPY . .
+RUN chown -R app:app /app/
+USER app
+RUN bundle install --path vendor/bundle
+RUN sed -i -e "s/localhost:27017/hubdb:27017/" config/mongoid.yml
 
 
 # Batch query scheduling in cron
 #
+USER root
 RUN ( \
       echo "# Run batch queries"; \
       echo "0 23 * * * /app/util/scheduled_job_post.py /app/util/job_params/job_params.json"; \
@@ -72,11 +64,10 @@ RUN ( \
 
 # Create startup script and make it executable
 #
-RUN mkdir -p /etc/service/app/; \
+RUN SRV=rails; \
+    mkdir -p /etc/service/${SRV}/; \
     ( \
       echo "#!/bin/bash"; \
-      echo "#"; \
-      echo "set -e -o nounset"; \
       echo ""; \
       echo ""; \
       echo "# Create Endpoint public keys file (authorized_keys)"; \
@@ -98,20 +89,40 @@ RUN mkdir -p /etc/service/app/; \
       echo "# Start service"; \
       echo "#"; \
       echo "cd /app/"; \
-      echo "chown -R app:app /app/"; \
-      echo "/sbin/setuser app bundle install"; \
-      echo "/sbin/setuser app bundle exec script/delayed_job start"; \
-      echo "/sbin/setuser app bundle exec rails server -p 3002"; \
-      echo "/sbin/setuser app bundle exec script/delayed_job stop"; \
+      echo "exec /sbin/setuser app bundle exec rails server -p 3002"; \
     )  \
-      >> /etc/service/app/run; \
-    chmod +x /etc/service/app/run
+      >> /etc/service/${SRV}/run; \
+    chmod +x /etc/service/${SRV}/run
 
 
-# Volumes
+# Startup script for Delayed Job app
+#
+RUN SRV=delayed_job; \
+    mkdir -p /etc/service/${SRV}/; \
+    ( \
+      echo "#!/bin/bash"; \
+      echo ""; \
+      echo ""; \
+      echo "# Start delayed job"; \
+      echo "#"; \
+      echo "cd /app/"; \
+      echo "rm /app/tmp/pids/server.pid > /dev/null"; \
+      echo "exec /sbin/setuser app bundle exec /app/script/delayed_job run"; \
+      echo "#/sbin/setuser app bundle exec /app/script/delayed_job stop > /dev/null"; \
+    )  \
+      >> /etc/service/${SRV}/run; \
+    chmod +x /etc/service/${SRV}/run
+
+
+# Ports and volumes
+#
+EXPOSE 2774
+EXPOSE 3002
 #
 VOLUME /app/util/job_params/
 VOLUME /home/autossh/.ssh/
+VOLUME /etc/ssh/
+VOLUME /root/.ssh/
 
 
 # Run Command

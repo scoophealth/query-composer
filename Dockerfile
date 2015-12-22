@@ -28,9 +28,6 @@
 # - SSH keys:        -v </path/>:/etc/ssh/:rw
 # - job params:      -v </path/>:/app/util/job_params/:rw
 #
-# Releases
-# - https://github.com/PDCbc/composer/releases
-#
 #
 FROM phusion/passenger-ruby19
 MAINTAINER derek.roberts@gmail.com

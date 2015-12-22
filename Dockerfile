@@ -28,25 +28,12 @@
 # - SSH keys:        -v </path/>:/etc/ssh/:rw
 # - job params:      -v </path/>:/app/util/job_params/:rw
 #
-# Releases
-# - https://github.com/PDCbc/composer/releases
-#
 #
 FROM phusion/passenger-ruby19
 MAINTAINER derek.roberts@gmail.com
-ENV RELEASE 0.1.4
 
 
-# Packages
-#
-RUN apt-get update; \
-    apt-get install -y \
-      git; \
-    apt-get clean; \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
-
-# Enable and configure SSH (for AutoSSH user/tunnel)
+# Enable ssh and create user for autossh tunnel
 #
 RUN rm -f /etc/service/sshd/down; \
     adduser --quiet --disabled-password --home /home/autossh autossh 2>&1
@@ -55,10 +42,11 @@ RUN rm -f /etc/service/sshd/down; \
 # Prepare /app/ folder
 #
 WORKDIR /app/
-RUN git clone https://github.com/pdcbc/composer.git . -b ${RELEASE}; \
+COPY . .
+RUN sed -i -e "s/localhost:27017/hubdb:27017/" config/mongoid.yml; \
     chown -R app:app /app/; \
-    /sbin/setuser app bundle install --path vendor/bundle; \
-    sed -i -e "s/localhost:27017/hubdb:27017/" config/mongoid.yml
+    /sbin/setuser app bundle install --path vendor/bundle
+
 
 
 # Batch query scheduling in cron
@@ -72,14 +60,13 @@ RUN ( \
 
 # Create startup script and make it executable
 #
-RUN mkdir -p /etc/service/app/; \
+RUN SRV=rails; \
+    mkdir -p /etc/service/${SRV}/; \
     ( \
       echo "#!/bin/bash"; \
-      echo "#"; \
-      echo "set -e -o nounset"; \
       echo ""; \
       echo ""; \
-      echo "# Create Endpoint public keys file (authorized_keys)"; \
+      echo "# Create Endpoint public keys file (authorized_keys), if necessary"; \
       echo "#"; \
       echo "mkdir -p /home/autossh/.ssh/"; \
       echo "touch /home/autossh/.ssh/authorized_keys"; \
@@ -98,22 +85,42 @@ RUN mkdir -p /etc/service/app/; \
       echo "# Start service"; \
       echo "#"; \
       echo "cd /app/"; \
-      echo "chown -R app:app /app/"; \
-      echo "/sbin/setuser app bundle install"; \
-      echo "/sbin/setuser app bundle exec script/delayed_job start"; \
-      echo "/sbin/setuser app bundle exec rails server -p 3002"; \
-      echo "/sbin/setuser app bundle exec script/delayed_job stop"; \
+      echo "exec /sbin/setuser app bundle exec rails server -p 3002"; \
     )  \
-      >> /etc/service/app/run; \
-    chmod +x /etc/service/app/run
+      >> /etc/service/${SRV}/run; \
+    chmod +x /etc/service/${SRV}/run
 
 
-# Volumes
+# Startup script for Delayed Job app
 #
-VOLUME /app/util/job_params/
-VOLUME /home/autossh/.ssh/
+RUN SRV=delayed_job; \
+    mkdir -p /etc/service/${SRV}/; \
+    ( \
+      echo "#!/bin/bash"; \
+      echo ""; \
+      echo ""; \
+      echo "# Start delayed job"; \
+      echo "#"; \
+      echo "cd /app/"; \
+      echo "rm /app/tmp/pids/server.pid > /dev/null"; \
+      echo "exec /sbin/setuser app bundle exec /app/script/delayed_job run"; \
+      echo "/sbin/setuser app bundle exec /app/script/delayed_job stop > /dev/null"; \
+    )  \
+      >> /etc/service/${SRV}/run; \
+    chmod +x /etc/service/${SRV}/run
 
 
 # Run Command
 #
 CMD ["/sbin/my_init"]
+
+
+# Ports and volumes
+#
+EXPOSE 2774
+EXPOSE 3002
+#
+VOLUME /app/util/job_params/
+VOLUME /home/autossh/.ssh/
+VOLUME /etc/ssh/
+VOLUME /root/.ssh/

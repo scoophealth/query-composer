@@ -36,7 +36,7 @@ FROM phusion/passenger-ruby19
 MAINTAINER derek.roberts@gmail.com
 
 
-# Enable and configure SSH (for AutoSSH user/tunnel)
+# Enable ssh and create user for autossh tunnel
 #
 RUN rm -f /etc/service/sshd/down; \
     adduser --quiet --disabled-password --home /home/autossh autossh 2>&1
@@ -46,15 +46,14 @@ RUN rm -f /etc/service/sshd/down; \
 #
 WORKDIR /app/
 COPY . .
-RUN chown -R app:app /app/
-USER app
-RUN bundle install --path vendor/bundle
-RUN sed -i -e "s/localhost:27017/hubdb:27017/" config/mongoid.yml
+RUN sed -i -e "s/localhost:27017/hubdb:27017/" config/mongoid.yml; \
+    chown -R app:app /app/; \
+    /sbin/setuser app bundle install --path vendor/bundle
+
 
 
 # Batch query scheduling in cron
 #
-USER root
 RUN ( \
       echo "# Run batch queries"; \
       echo "0 23 * * * /app/util/scheduled_job_post.py /app/util/job_params/job_params.json"; \
@@ -70,7 +69,7 @@ RUN SRV=rails; \
       echo "#!/bin/bash"; \
       echo ""; \
       echo ""; \
-      echo "# Create Endpoint public keys file (authorized_keys)"; \
+      echo "# Create Endpoint public keys file (authorized_keys), if necessary"; \
       echo "#"; \
       echo "mkdir -p /home/autossh/.ssh/"; \
       echo "touch /home/autossh/.ssh/authorized_keys"; \
@@ -108,10 +107,15 @@ RUN SRV=delayed_job; \
       echo "cd /app/"; \
       echo "rm /app/tmp/pids/server.pid > /dev/null"; \
       echo "exec /sbin/setuser app bundle exec /app/script/delayed_job run"; \
-      echo "#/sbin/setuser app bundle exec /app/script/delayed_job stop > /dev/null"; \
+      echo "/sbin/setuser app bundle exec /app/script/delayed_job stop > /dev/null"; \
     )  \
       >> /etc/service/${SRV}/run; \
     chmod +x /etc/service/${SRV}/run
+
+
+# Run Command
+#
+CMD ["/sbin/my_init"]
 
 
 # Ports and volumes
@@ -123,8 +127,3 @@ VOLUME /app/util/job_params/
 VOLUME /home/autossh/.ssh/
 VOLUME /etc/ssh/
 VOLUME /root/.ssh/
-
-
-# Run Command
-#
-CMD ["/sbin/my_init"]

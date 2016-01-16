@@ -48,16 +48,6 @@ RUN sed -i -e "s/localhost:27017/hubdb:27017/" config/mongoid.yml; \
     /sbin/setuser app bundle install --path vendor/bundle
 
 
-
-# Batch query scheduling in cron
-#
-RUN ( \
-      echo "# Run batch queries"; \
-      echo "0 23 * * * /app/util/scheduled_job_post.py /app/util/job_params/job_params.json"; \
-    ) \
-      | crontab -
-
-
 # Create startup script and make it executable
 #
 RUN SRV=rails; \
@@ -71,15 +61,6 @@ RUN SRV=rails; \
       echo "mkdir -p /home/autossh/.ssh/"; \
       echo "touch /home/autossh/.ssh/authorized_keys"; \
       echo "chown -R autossh:autossh /home/autossh/.ssh/"; \
-      echo ""; \
-      echo ""; \
-      echo "# Create job_params.json, if necessary"; \
-      echo "#"; \
-      echo "if [ ! -f /app/util/job_params/job_params.json ]"; \
-      echo "then"; \
-      echo "  mkdir -p /app/util/job_params/"; \
-      echo "  cp /app/util/job_params.json /app/util/job_params/"; \
-      echo "fi"; \
       echo ""; \
       echo ""; \
       echo "# Start service"; \
@@ -108,6 +89,16 @@ RUN SRV=delayed_job; \
     )  \
       >> /etc/service/${SRV}/run; \
     chmod +x /etc/service/${SRV}/run
+
+
+
+# Batch query scheduling in cron
+#
+RUN ( \
+      echo "# Run batch queries (23 PST = y UTC)"; \
+      echo "0 7 * * * /app/util/run_batch_queries.sh"; \
+    ) \
+      | crontab -
 
 
 # Run Command

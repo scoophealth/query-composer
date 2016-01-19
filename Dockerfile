@@ -33,6 +33,17 @@ FROM phusion/passenger-ruby19
 MAINTAINER derek.roberts@gmail.com
 
 
+# Keep server-initiated connections from timing out (not for autossh!)
+#
+RUN ( \
+      echo ""; \
+      echo "# Keep connections alive, 60 second interval"; \
+      echo "# "; \
+      echo "Host *"; \
+      echo "ServerAliveInterval 60"; \
+  ) | tee -a /etc/ssh/ssh_config
+
+
 # Enable ssh and create user for autossh tunnel
 #
 RUN rm -f /etc/service/sshd/down; \

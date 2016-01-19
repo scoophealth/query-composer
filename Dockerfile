@@ -33,6 +33,12 @@ FROM phusion/passenger-ruby19
 MAINTAINER derek.roberts@gmail.com
 
 
+# Environment variables
+#
+ENV TERM xterm
+ENV DEBIAN_FRONTEND noninteractive
+
+
 # Keep server-initiated connections from timing out (not for autossh!)
 #
 RUN ( \

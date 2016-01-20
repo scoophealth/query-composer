@@ -23,7 +23,7 @@ else
 	console.log('RETRO_QUERY_TITLE: ' + process.env.RETRO_QUERY_TITLE);
 }
 // Connect to the db
-MongoClient.connect('mongodb://localhost:27017/query_composer_development', function(err, db) {
+MongoClient.connect('mongodb://hubdb:27017/query_composer_development', function(err, db) {
   if(err) { return console.dir(err); }
 
   db.collection('queries', null,
@@ -93,7 +93,7 @@ MongoClient.connect('mongodb://localhost:27017/query_composer_development', func
                 {
                   continue;
                 }
-		
+
                 var execution = JSON.parse(key);
 
                 var date = execution.date/1000;//leave in milliseconds
@@ -103,7 +103,7 @@ MongoClient.connect('mongodb://localhost:27017/query_composer_development', func
 		{
 			throw new Error('Error: Missing field');
 		}
-		
+
 		var ar_key = execution.gender + '_' +
                              execution.ageRange + '_' +
                              execution.pid;
@@ -136,14 +136,14 @@ MongoClient.connect('mongodb://localhost:27017/query_composer_development', func
                 {
                   continue;
                 }
-		
+
                 queryExecutions.push( simulatedExecutions[se] );
               }
               //****************************************************************************
 
               //update the query with the retro results
               //****************************************************************************
-	      
+
               queriesCollection.updateOne({title:process.env.QUERY_TITLE}, {$set:{executions:queryExecutions}}, {upsert:true},
                   function(err, result)
                   {
@@ -151,7 +151,7 @@ MongoClient.connect('mongodb://localhost:27017/query_composer_development', func
                     {
                       throw new Error(err);
                     }
-		    
+
 		    db.close(
 			function(err, result)
 			{

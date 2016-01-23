@@ -3,9 +3,9 @@
 <div id="login">
   <div id="cap-top"></div>
   <div id="cap-body">
-    <div id="branding">
-	  <%= image_tag "hQuery_logo.png", :alt => "hQuery logo"%>
-    </div>
+		<div id="branding">
+		<%= image_tag "PDC-Logo.png", :width => "100%", :alt => "PDC logo"%>
+		</div>
     <div class="panel">
       <div class="accountError">
 		  <%= devise_error_messages! %>
@@ -60,14 +60,14 @@
         distributed under the License is distributed on an "AS IS" BASIS,
         WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
         See the License for the specific language governing permissions and
-        limitations under the License.  
+        limitations under the License.
       </p>
 
       <div id="regcheckbox">
           <%= f.check_box :agree_license %>
           <label for="user_agree_license">I agree to the above Terms and Conditions of use</label>
       </div>
-      
+
       <div class="actions">
           <a class="btn" href="<%= new_session_path(resource_name) %>"><span>Cancel</span></a>
           <a class="btn" href="#" onclick="submitRegisterform();"><span>Create</span></a>
@@ -78,4 +78,3 @@
 </div><!-- END #login -->
 
 <% end %>
-

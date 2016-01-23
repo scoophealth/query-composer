@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>QueryComposer</title>
+  <title>PDC Hub</title>
   <%= stylesheet_link_tag "application" %>
   <%= javascript_include_tag "application" %>
   <%= csrf_meta_tags %>
@@ -14,7 +14,7 @@
 <body>
   <%= render :partial => 'shared/header', :locals => {:definition => @definition} %>
   <div id="container">
-  
+
     <div id="pageContent">
       <%= yield %>
     </div><!-- end #pageContent -->

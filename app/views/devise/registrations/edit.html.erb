@@ -2,9 +2,9 @@
 	<div id="login">
 	  <div id="cap-top"></div>
 	  <div id="cap-body">
-	    <div id="branding">
-		  <%= image_tag "hQuery_logo.png", :alt => "hQuery logo"%>
-	    </div>
+			<div id="branding">
+			<%= image_tag "PDC-Logo.png", :width => "100%", :alt => "PDC logo"%>
+			</div>
 	    <div class="panel">
 	      <div class="accountError">
 			  <%= devise_error_messages! %>
@@ -49,8 +49,8 @@
 	            <label for="company_url">Your Organization URL:</label>
 	            <%= f.text_field :company_url %>
 	        </li>
-	
-	
+
+
 	      </ul>
 
 	      <div class="actions">
@@ -62,4 +62,3 @@
 	  <div id="cap-bottom"></div>
 	</div><!-- END #login -->
 <% end %>
-

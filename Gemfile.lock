@@ -1,5 +1,5 @@
 GIT
-  remote: https://github.com/scoophealth/patientapi.git
+  remote: https://github.com/physiciansdatacollaborative/patientapi.git
   revision: 8cfb50a53396180b652737f406d5cc2d9e5e3cb5
   branch: master
   specs:
